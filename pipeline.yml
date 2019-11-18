@@ -1,0 +1,35 @@
+---
+jobs:
+- name: test
+  plan:
+  - get: src
+    trigger: false
+  - config:
+      inputs:
+        - name: src
+          path: .
+      image_resource:
+        type: registry-image
+        source:
+          repository: amidos/dcind
+          tag: 2
+      platform: linux
+      run:
+        args:
+        - -c
+        - |
+          [ -f docker-compose.yml ] || echo skip docker-compose
+          [ -f docker-compose.yml ] || exit 0
+          source /docker-lib.sh
+          start_docker
+          docker-compose up --exit-code-from test
+        path: /bin/sh
+    privileged: true
+    task: test 
+  public: true
+resources:
+- name: src
+  source:
+    branch: master
+    uri: https://github.com/dj80hd/minimal-docker-compose
+  type: git
